@@ -1,6 +1,6 @@
 # RailsDAV
 
-Make your Rails 3/4 resources accessible via WebDAV.
+Make your Rails resources accessible via WebDAV.
 
 This gem provides basic Rails 3/4 extensions for making your business
 resources accessible via WebDAV. This gem does by no means by no means

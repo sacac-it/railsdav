@@ -24,10 +24,8 @@ class ActionDispatch::Routing::Mapper
         case Rails.version
         when /^3\./
           map_method(method_name, *args, &block)
-        when /^(4|5)\./
-          map_method(method_name, args, &block)
         else
-          raise "Your Rails Version (#{Rails.version}) is currently not supported by the RailsDAV gem."
+          map_method(method_name, args, &block)
         end
       end
     end
