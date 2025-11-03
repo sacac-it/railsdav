@@ -1,17 +1,3 @@
-# encoding: utf-8
-
-# Allow usage of WebDAV specific HTTP verbs
-# userinfo is not a standard webdav verb, bur davfs2 uses it
-# and we want to be prepared to ignore it gracefully (e.g.
-# by sending a :not_implemented response)
-if Rails.version < '3.2'
-  verbs = %w(propfind proppatch mkcol copy move lock unlock userinfo)
-  verbs.each do |method|
-    ActionDispatch::Request::HTTP_METHODS << method.upcase
-    ActionDispatch::Request::HTTP_METHOD_LOOKUP[method.upcase] = method.to_sym
-  end
-end
-
 # Extend routing s.t. webdav_resource and webdav_resources can be used,
 # enabling things like PROPFIND /foo/index.(:format) and such.
 #
@@ -21,12 +7,10 @@ class ActionDispatch::Routing::Mapper
 
     %w(propfind options copy move mkcol lock unlock proppatch).each do |method_name|
       define_method "dav_#{method_name}" do |*args, &block|
-        case Rails.version
-        when /^3\./
-          map_method(method_name, *args, &block)
-        else
-          map_method(method_name, args, &block)
-        end
+        options = args.extract_options!
+        options[:via] = method_name
+        match(*args, options, &block)
+        self
       end
     end
   end
@@ -50,30 +34,8 @@ class ActionDispatch::Routing::Mapper
       end
     end
 
-    if Rails.version < '3.2'
-      # Rails versions after 3.1 expect two arguments here, the first being :resource, :resources,
-      # :webdav_resource etc.so we don't need the inferring logic anymore in newer versions.
-      def resource_scope(resource)
-        case resource
-        when WebDAVSingletonResource
-          scope_level = :webdav_resource
-        when WebDAVResource
-          scope_level = :webdav_resources
-        when SingletonResource
-          scope_level = :resource
-        when Resource
-          scope_level = :resources
-        end
-        with_scope_level(scope_level, resource) do
-          scope(parent_resource.resource_scope) do
-            yield
-          end
-        end
-      end
-    else
-      def resource_scope?
-        [:webdav_resource, :webdav_resources, :resource, :resources].include?(@scope[:scope_level] || @scope.scope_level)
-      end
+    def resource_scope?
+      [:webdav_resource, :webdav_resources, :resource, :resources].include?(@scope[:scope_level] || @scope.scope_level)
     end
 
     def dav_options_response(*allowed_http_verbs)
@@ -122,14 +84,8 @@ class ActionDispatch::Routing::Mapper
         end
       end
 
-      if Rails.version < '3.2'
-        resource_scope(WebDAVSingletonResource.new(resources.pop, options), &sub_block)
-      elsif Rails.version < '5.0'
-        resource_scope(:webdav_resource, WebDAVSingletonResource.new(resources.pop, options), &sub_block)
-      else
-        with_scope_level :webdav_resource do
-          resource_scope WebDAVResource.new(resources.pop, api_only?, options), &sub_block
-        end
+      with_scope_level :webdav_resource do
+        resource_scope WebDAVResource.new(resources.pop, api_only?, options), &sub_block
       end
 
       self
@@ -138,7 +94,7 @@ class ActionDispatch::Routing::Mapper
     def webdav_resources(*resources, &block)
       options = resources.extract_options!
 
-      if apply_common_behavior_for(:webdav_resources, resources, options, &block)
+      if apply_common_behavior_for(:webdav_resources, resources, **options, &block)
         return self
       end
 
@@ -199,14 +155,8 @@ class ActionDispatch::Routing::Mapper
         end
       end
 
-      if Rails.version < '3.2'
-        resource_scope(WebDAVResource.new(resources.pop, options), &sub_block)
-      elsif Rails.version < '5.0'
-        resource_scope(:webdav_resources, WebDAVResource.new(resources.pop, options), &sub_block)
-      else
-        with_scope_level :webdav_resources do
-          resource_scope WebDAVResource.new(resources.pop, api_only?, options), &sub_block
-        end
+      with_scope_level :webdav_resources do
+        resource_scope WebDAVResource.new(resources.pop, api_only?, options), &sub_block
       end
 
       self
