@@ -47,7 +47,7 @@ module Railsdav
             if meta[:accept]
               [meta[:accept]].flatten.each do |type_name|
                 mime_type = Mime::Type.lookup_by_extension(type_name)
-                subresource_url = @controller.url_for(route.merge(:format => type_name))
+                subresource_url = @controller.url_for(route.merge(format: type_name, only_path: true))
                 @subresources << Renderer::ResourceDescriptor.new(subresource_url, options.merge(:format => mime_type))
               end
             end
