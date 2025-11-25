@@ -35,7 +35,7 @@ module Railsdav
     def initialize(controller)
       @controller = controller
       @request    = controller.request
-#       @depth      = (@request.headers['Depth'].to_i > 0) ? 1 : 0 # depth "infinite" is not yet supported
+      #       @depth      = (@request.headers['Depth'].to_i > 0) ? 1 : 0 # depth "infinite" is not yet supported
       @depth      = (@request.headers['Depth'].to_i)
       Rails.logger.debug "Depth:#{@request.headers['Depth']}"
     end
@@ -134,10 +134,10 @@ module Railsdav
       params = @controller.params.dup
       if params[:propfind]
         # OK
-      elsif @controller.request.body.size > 0 # rails version without automatic XML body params parsing, so do it by hand here:
-        @controller.request.body.rewind
-        params.merge! Hash.from_xml(@controller.request.body.read)
+      elsif (body_data = @controller.request.body.read).present? # rails version without automatic XML body params parsing, so do it by hand here:
+        params.merge! Hash.from_xml(body_data)
       end
+      Rackup::Handler::WEBrick::Input
 
       params[:propfind] ||= {:prop => []}
 
@@ -266,4 +266,3 @@ module Railsdav
 
   end # class Railsdav
 end # module Railsdav
-
