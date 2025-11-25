@@ -6,10 +6,9 @@ class ActionDispatch::Routing::Mapper
   module HttpHelpers
 
     %w(propfind options copy move mkcol lock unlock proppatch).each do |method_name|
-      define_method "dav_#{method_name}" do |*args, &block|
-        options = args.extract_options!
-        options[:via] = method_name
-        match(*args, options, &block)
+      define_method "dav_#{method_name}" do |*args, **kwargs, &block|
+        kwargs[:via] = method_name
+        match(*args, **kwargs, &block)
         self
       end
     end
