@@ -42,20 +42,19 @@ class ActionDispatch::Routing::Mapper
       proc { [200, {'Allow' => allowed_http_verbs.flatten.map{|s| s.to_s.upcase}.join(' '), 'DAV' => '1'}, [' ']] }
     end
 
-    def dav_match(*args)
-      get *args
-      if args.last.is_a? Hash
+    def dav_match(*args, **kwags)
+      get *args, **kwags
+      if kwags
         # prevents `Invalid route name, already in use`
-        args.last.delete(:as)
-        args.last.delete('as')
+        kwags.delete(:as)
+        kwags.delete('as')
       end
-      dav_propfind *args
+      dav_propfind *args, **kwags
     end
 
-    def webdav_resource(*resources, &block)
-      options = resources.extract_options!.dup
+    def webdav_resource(*resources, **kwargs, &block)
 
-      if apply_common_behavior_for(:webdav_resource, resources, options, &block)
+      if apply_common_behavior_for(:webdav_resource, resources, **kwargs, &block)
         return self
       end
 
@@ -85,7 +84,7 @@ class ActionDispatch::Routing::Mapper
       end
 
       with_scope_level :webdav_resource do
-        resource_scope WebDAVResource.new(resources.pop, api_only?, options), &sub_block
+        resource_scope WebDAVResource.new(resources.pop, api_only?, shallow?, **kwargs), &sub_block
       end
 
       self
