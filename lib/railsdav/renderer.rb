@@ -178,7 +178,8 @@ module Railsdav
 
         if resource.collection?
           response_hash[:resourcetype]   = proc { @dav.tag! "D:collection" } # must be block to render <collection></collection> instead of "collection"
-          response_hash[:getcontenttype] = nil
+          response_hash.delete(:getcontenttype)
+          response_hash.delete(:getcontentlength)
         end
 
         requested_properties = requested_properties.presence || response_hash.keys
