@@ -181,7 +181,7 @@ module Railsdav
           response_hash[:getcontenttype] = nil
         end
 
-        requested_properties ||= response_hash.keys
+        requested_properties = requested_properties.presence || response_hash.keys
 
         # as a workaround for another bug in Flycode's WebDAV module,
         # which expects (because of how it does element name matching)
