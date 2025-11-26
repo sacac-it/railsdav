@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name     = 'railsdav'
-  s.version  = '0.2.3'
+  s.version  = '0.2.4'
   s.date     = Time.now
   s.authors  = ['Willem van Kerkhof', 'Till Schulte-Coerne']
   s.licenses = ['MIT']
