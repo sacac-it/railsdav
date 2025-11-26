@@ -137,7 +137,6 @@ module Railsdav
       elsif (body_data = @controller.request.body.read).present? # rails version without automatic XML body params parsing, so do it by hand here:
         params.merge! Hash.from_xml(body_data)
       end
-      Rackup::Handler::WEBrick::Input
 
       params[:propfind] ||= {:prop => []}
 
